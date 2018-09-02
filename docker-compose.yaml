@@ -4,8 +4,7 @@ services:
 
   app:
     build:
-      context: .
-      dockerfile: Dockerfile.dev
+      context: ./app
     command:
       - dev_appserver.py
       - app.yaml
@@ -23,12 +22,15 @@ services:
         mode: host
     volumes:
       - type: bind
-        source: .
-        target: /go/${APP_PATH}
+        source: ./app
+        target: /go/${APP_PATH}/app
+      - type: bind
+        source: ./pkg
+        target: /go/${APP_PATH}/pkg
       - type: volume
         source: storage
         target: /storage
-    working_dir: /go/${APP_PATH}
+    working_dir: /go/${APP_PATH}/app
 
 volumes:
   storage:

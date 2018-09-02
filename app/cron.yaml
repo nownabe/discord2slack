@@ -1,0 +1,5 @@
+cron:
+
+  - description: "Check new messages"
+    url: /check
+    schedule: every 1 hour

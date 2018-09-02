@@ -1,0 +1,10 @@
+runtime: go
+api_version: go1.9
+
+handlers:
+  - url: /.*
+    script: _go_app
+
+env_variables:
+  DISCORD_TOKEN: BOT-TOKEN
+  DISCORD_CHANNEL_IDS: CHANNEL-ID1,CHANNEL-ID2
