@@ -5,6 +5,7 @@ services:
   app:
     build:
       context: ./app
+      dockerfile: ../Dockerfile
     command:
       - dev_appserver.py
       - app.yaml
