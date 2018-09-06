@@ -101,7 +101,7 @@ func checkChannel(ctx context.Context, guild *discordgo.Guild, channel *discordg
 	msg := slack.Message{Text: text, Attachments: attachments}
 	if err := slackClient.Post(ctx, msg); err != nil {
 		log.Errorf(ctx,
-			"[%s - %s]failed to post to slack: %v",
+			"[%s - %s] failed to post to slack: %v",
 			guild.Name, channel.Name, err)
 		return err
 	}
