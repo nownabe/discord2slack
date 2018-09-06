@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nownabe/discord2slack/pkg/checker"
-	"github.com/nownabe/discord2slack/pkg/slack"
+	"github.com/nownabe/discord2slack/pkg/delayedchecker"
+	"github.com/nownabe/discord2slack/pkg/handler"
 )
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -15,22 +15,16 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func init() {
-	token := os.Getenv("DISCORD_TOKEN")
-	channels := os.Getenv("DISCORD_CHANNEL_IDS")
+	delayedchecker.DiscordToken = os.Getenv("DISCORD_TOKEN")
+	delayedchecker.SlackWebhookURL = os.Getenv("SLACK_WEBHOOK_URL")
 
-	slack, err := slack.New(os.Getenv("SLACK_WEBHOOK_URL"))
-	if err != nil {
-		panic(err)
-	}
+	channels := strings.Split(os.Getenv("DISCORD_CHANNEL_IDS"), ",")
 
-	checkHandler, err := checker.New(token, strings.Split(channels, ","), slack)
-	if err != nil {
-		panic(err)
-	}
+	h := handler.New(channels)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/_ah/health", healthCheckHandler)
-	mux.Handle("/check", checkHandler)
+	mux.Handle("/check", h)
 	mux.Handle("/", http.NotFoundHandler())
 	http.Handle("/", mux)
 }
