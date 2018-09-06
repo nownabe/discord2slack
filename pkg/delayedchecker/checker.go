@@ -14,6 +14,7 @@ import (
 const (
 	checkGuildKey   = "checkGuild"
 	checkChannelKey = "checkChannel"
+	messagesLimit   = 100
 )
 
 var (
@@ -75,7 +76,7 @@ func checkChannel(ctx context.Context, guild *discordgo.Guild, channel *discordg
 		return err
 	}
 
-	messages, err := discord.ChannelMessages(channel.ID, 100, "", "", "")
+	messages, err := discord.ChannelMessages(channel.ID, messagesLimit, "", "", "")
 	if err != nil {
 		log.Errorf(ctx,
 			"[%s - %s] faild to get discord messages: %v",
