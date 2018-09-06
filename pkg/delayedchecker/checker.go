@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/mjibson/goon"
+	"github.com/nownabe/discord2slack/pkg/entity"
 	"github.com/nownabe/discord2slack/pkg/slack"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/log"
@@ -60,7 +62,7 @@ func checkGuild(ctx context.Context, guildID string) error {
 	return nil
 }
 
-func checkChannel(ctx context.Context, guild *discordgo.Guild, channel *discordgo.Channel) error {
+func checkChannel(ctx context.Context, g *discordgo.Guild, c *discordgo.Channel) error {
 	discord, err := discordgo.New("Bot " + DiscordToken)
 	if err != nil {
 		log.Errorf(ctx, "failed to create discord client: %v", err)
@@ -72,11 +74,22 @@ func checkChannel(ctx context.Context, guild *discordgo.Guild, channel *discordg
 	if err != nil {
 		log.Errorf(ctx,
 			"[%s - %s] failed to get slack client: %v",
+			g.Name, c.Name, err)
+		return err
+	}
+
+	guild := &entity.Guild{ID: g.ID, Name: g.Name}
+	channel := &entity.Channel{ID: c.ID, Name: c.Name}
+
+	if err := getChannel(ctx, guild, channel); err != nil {
+		log.Errorf(ctx,
+			"[%s - %s] failed to get channel: %v",
 			guild.Name, channel.Name, err)
 		return err
 	}
 
-	messages, err := discord.ChannelMessages(channel.ID, messagesLimit, "", "", "")
+	messages, err := discord.ChannelMessages(
+		channel.ID, messagesLimit, "", channel.LastMessageID, "")
 	if err != nil {
 		log.Errorf(ctx,
 			"[%s - %s] faild to get discord messages: %v",
@@ -104,6 +117,48 @@ func checkChannel(ctx context.Context, guild *discordgo.Guild, channel *discordg
 		log.Errorf(ctx,
 			"[%s - %s] failed to post to slack: %v",
 			guild.Name, channel.Name, err)
+		return err
+	}
+
+	channel.LastMessageID = messages[0].ID
+
+	if err := saveChannel(ctx, channel); err != nil {
+		log.Errorf(ctx,
+			"[%s - %s] failed to save updates: %v",
+			guild.Name, channel.Name, err)
+		return err
+	}
+
+	return nil
+}
+
+func getChannel(ctx context.Context, gu *entity.Guild, c *entity.Channel) error {
+	g := goon.FromContext(ctx)
+
+	if err := g.Get(gu); err != nil {
+		log.Infof(ctx, "guild %s does not exist yet: %v", gu.Name, err)
+		if _, err := g.Put(gu); err != nil {
+			log.Errorf(ctx, "faild to put build %s: %v", gu.Name, err)
+			return err
+		}
+		log.Infof(ctx, "created guild %s", gu.Name)
+	}
+
+	c.GuildKey = g.Key(gu)
+
+	if err := g.Get(c); err != nil {
+		log.Infof(ctx, "channel %s does not exist yet: %v", c.Name, err)
+		return nil
+	}
+
+	return nil
+}
+
+func saveChannel(ctx context.Context, c *entity.Channel) error {
+	g := goon.FromContext(ctx)
+
+	if _, err := g.Put(c); err != nil {
+		log.Errorf(ctx, "failed to put channel %s: %v", c.Name, err)
 		return err
 	}
 

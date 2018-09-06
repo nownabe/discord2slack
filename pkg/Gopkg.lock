@@ -20,6 +20,12 @@
   version = "v1.3.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/mjibson/goon"
+  packages = ["."]
+  revision = "0c01b4bc4f4970fa6f91409bf7f134a10809219c"
+
+[[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
@@ -46,17 +52,20 @@
   name = "google.golang.org/appengine"
   packages = [
     ".",
+    "datastore",
     "delay",
     "internal",
     "internal/app_identity",
     "internal/base",
     "internal/datastore",
     "internal/log",
+    "internal/memcache",
     "internal/modules",
     "internal/remote_api",
     "internal/taskqueue",
     "internal/urlfetch",
     "log",
+    "memcache",
     "taskqueue",
     "urlfetch"
   ]
@@ -66,6 +75,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9e6da24b17134c28d00d68f5f24ec3b7dec9578b94c4168eec3f026213f66a9b"
+  inputs-digest = "41880e536e1d9b30e64d853690a25d7507a060129a5e35bf08adaa80ba598edc"
   solver-name = "gps-cdcl"
   solver-version = 1
