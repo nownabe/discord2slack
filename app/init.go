@@ -18,9 +18,9 @@ func init() {
 	delayedchecker.DiscordToken = os.Getenv("DISCORD_TOKEN")
 	delayedchecker.SlackWebhookURL = os.Getenv("SLACK_WEBHOOK_URL")
 
-	channels := strings.Split(os.Getenv("DISCORD_CHANNEL_IDS"), ",")
+	guilds := strings.Split(os.Getenv("DISCORD_GUILD_IDS"), ",")
 
-	h := handler.New(channels)
+	h := handler.New(guilds)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/_ah/health", healthCheckHandler)

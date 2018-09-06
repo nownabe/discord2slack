@@ -12,61 +12,90 @@ import (
 	"google.golang.org/appengine/urlfetch"
 )
 
-const funcKey = "check"
+const (
+	checkGuildKey   = "checkGuild"
+	checkChannelKey = "checkChannel"
+)
 
 var (
 	DiscordToken    string
 	SlackWebhookURL string
 
-	delayFunc = delay.Func(funcKey, check)
+	delayedCheckGuild   = delay.Func(checkGuildKey, checkGuild)
+	delayedCheckChannel = delay.Func(checkChannelKey, checkChannel)
 )
 
-func Call(ctx context.Context, channelID string) error {
-	return delayFunc.Call(ctx, channelID)
+func Call(ctx context.Context, guildID string) error {
+	return delayedCheckGuild.Call(ctx, guildID)
 }
 
-func check(ctx context.Context, channelID string) error {
-	client := urlfetch.Client(ctx)
-
+func checkGuild(ctx context.Context, guildID string) error {
 	discord, err := discordgo.New("Bot " + DiscordToken)
 	if err != nil {
 		log.Errorf(ctx, "failed to create discord client: %v", err)
 		return err
 	}
+	discord.Client = urlfetch.Client(ctx)
 
-	discord.Client = client
+	guild, err := discord.Guild(guildID)
+	if err != nil {
+		log.Errorf(ctx, "failed to get discord guild %s: %v", guildID, err)
+		return err
+	}
+
+	channels, err := discord.GuildChannels(guild.ID)
+	if err != nil {
+		log.Errorf(ctx, "failed to get discord channels in %s: %v", guild.ID, err)
+		return err
+	}
+
+	for _, ch := range channels {
+		if ch.Type == discordgo.ChannelTypeGuildText {
+			if err := delayedCheckChannel.Call(ctx, guild, ch); err != nil {
+				log.Errorf(ctx, "failed to call checkChannel %s in %s: %v", ch.ID, guild.ID, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func checkChannel(ctx context.Context, guild *discordgo.Guild, channel *discordgo.Channel) error {
+	discord, err := discordgo.New("Bot " + DiscordToken)
+	if err != nil {
+		log.Errorf(ctx, "failed to create discord client: %v", err)
+		return err
+	}
+	discord.Client = urlfetch.Client(ctx)
 
 	slackClient, err := slack.New(SlackWebhookURL)
 	if err != nil {
-		log.Errorf(ctx, "failed to get slack client: %v", err)
+		log.Errorf(ctx,
+			"[%s - %s] failed to get slack client: %v",
+			guild.Name, channel.Name, err)
 		return err
+	}
+
+	messages, err := discord.ChannelMessages(channel.ID, 100, "", "", "")
+	if err != nil {
+		log.Errorf(ctx,
+			"[%s - %s] faild to get discord messages: %v",
+			guild.Name, channel.Name, err)
+		return err
+	}
+
+	if len(messages) == 0 {
+		log.Infof(ctx, "[%s - %s] no new messages", guild.Name, channel.Name)
+		return nil
 	}
 
 	text := new(bytes.Buffer)
 
-	ch, err := discord.Channel(channelID)
-	if err != nil {
-		log.Errorf(ctx, "faild to get discord channel: %v", err)
-		return err
-	}
-
-	g, err := discord.Guild(ch.GuildID)
-	if err != nil {
-		log.Errorf(ctx, "failed to get discord guild: %v", err)
-		return err
-	}
-
-	messages, err := discord.ChannelMessages(channelID, 100, "", "", "")
-	if err != nil {
-		log.Errorf(ctx, "faild to get discord messages at %s in %s: %v", ch.Name, g.Name, err)
-		return err
-	}
-
 	for _, m := range messages {
 		text.WriteString(fmt.Sprintf(
 			"[%s - #%s] %s: %s\n",
-			g.Name,
-			ch.Name,
+			guild.Name,
+			channel.Name,
 			m.Author.Username,
 			m.Content,
 		))
@@ -75,7 +104,9 @@ func check(ctx context.Context, channelID string) error {
 
 	msg := slack.Message{Text: text.String()}
 	if err := slackClient.Post(ctx, msg); err != nil {
-		log.Errorf(ctx, "failed to post to slack: %v", err)
+		log.Errorf(ctx,
+			"[%s - %s]failed to post to slack: %v",
+			guild.Name, channel.Name, err)
 		return err
 	}
 

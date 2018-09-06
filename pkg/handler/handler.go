@@ -10,18 +10,18 @@ import (
 )
 
 type Handler struct {
-	channels []string
+	guilds []string
 }
 
-func New(channels []string) *Handler {
-	return &Handler{channels}
+func New(guilds []string) *Handler {
+	return &Handler{guilds}
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
-	for _, channelID := range h.channels {
-		if err := delayedchecker.Call(ctx, channelID); err != nil {
+	for _, guildID := range h.guilds {
+		if err := delayedchecker.Call(ctx, guildID); err != nil {
 			log.Errorf(ctx, "failed to call checker: %v", err)
 		}
 	}
