@@ -88,13 +88,13 @@ func checkChannel(ctx context.Context, guild *discordgo.Guild, channel *discordg
 		return nil
 	}
 
-	attachments := []slack.Attachment{}
+	attachments := make([]slack.Attachment, len(messages))
 
-	for _, m := range messages {
-		attachments = append(attachments, slack.Attachment{
+	for i, m := range messages {
+		attachments[len(attachments)-i-1] = slack.Attachment{
 			AuthorName: m.Author.Username,
 			Text:       m.Content,
-		})
+		}
 	}
 
 	text := fmt.Sprintf("New messages in %s - #%s", guild.Name, channel.Name)
