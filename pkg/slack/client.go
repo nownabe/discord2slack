@@ -15,10 +15,6 @@ type Client struct {
 	WebhookURL string
 }
 
-type Message struct {
-	Text string `json:"text"`
-}
-
 func New(url string) (*Client, error) {
 	return &Client{url}, nil
 }

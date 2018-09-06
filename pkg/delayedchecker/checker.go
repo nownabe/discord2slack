@@ -1,7 +1,6 @@
 package delayedchecker
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 
@@ -89,20 +88,17 @@ func checkChannel(ctx context.Context, guild *discordgo.Guild, channel *discordg
 		return nil
 	}
 
-	text := new(bytes.Buffer)
+	attachments := []slack.Attachment{}
 
 	for _, m := range messages {
-		text.WriteString(fmt.Sprintf(
-			"[%s - #%s] %s: %s\n",
-			guild.Name,
-			channel.Name,
-			m.Author.Username,
-			m.Content,
-		))
-		log.Infof(ctx, "%v", m)
+		attachments = append(attachments, slack.Attachment{
+			AuthorName: m.Author.Username,
+			Text:       m.Content,
+		})
 	}
 
-	msg := slack.Message{Text: text.String()}
+	text := fmt.Sprintf("New messages in %s - #%s", guild.Name, channel.Name)
+	msg := slack.Message{Text: text, Attachments: attachments}
 	if err := slackClient.Post(ctx, msg); err != nil {
 		log.Errorf(ctx,
 			"[%s - %s]failed to post to slack: %v",
