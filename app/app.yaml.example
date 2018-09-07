@@ -5,6 +5,9 @@ handlers:
   - url: /.*
     script: _go_app
 
+manual_scaling:
+  instances: 1
+
 env_variables:
   DISCORD_TOKEN: ${DISCORD_TOKEN}
   DISCORD_GUILD_IDS: ${DISCORD_GUILD_IDS}
