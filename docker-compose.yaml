@@ -4,8 +4,7 @@ services:
 
   app:
     build:
-      context: ./app
-      dockerfile: ../Dockerfile
+      context: .
     command:
       - dev_appserver.py
       - app/app.yaml
