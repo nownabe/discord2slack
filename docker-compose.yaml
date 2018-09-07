@@ -13,6 +13,9 @@ services:
       - --storage_path=/storage
       - --host=0.0.0.0
       - --admin_host=0.0.0.0
+    environment:
+      GOOGLE_PROJECT: ${GOOGLE_PROJECT}
+      GOOGLE_CREDENTIALS: ./credentials.json
     ports:
       - target: 8080
         published: 8080
