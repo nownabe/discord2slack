@@ -1,19 +1,25 @@
 sudo: required
 language: minimal
 service: docker
-
 before_install:
 - openssl aes-256-cbc -K $encrypted_e14206e67f07_key -iv $encrypted_e14206e67f07_iv
   -in credentials.json.enc -out credentials.json -d
-
+install:
+- apt-get install -y gettext
 script:
-  - |
-      if [[ "$TRAVIS_BRANCH" = "master" ]]; then
-        docker build -t deploy .
-        docker run -t \
-          -v `pwd`:/go/src/github.com/${TRAVIS_REPO_SLUG} \
-          -e GOOGLE_PROJECT=${GOOGLE_PROJECT} \
-          -e GOOGLE_CREDENTIALS=./credentials.json \
-          -w /go/src/github.com/${TRAVIS_REPO_SLUG} \
-          deploy tools/deploy
-      fi
+- |
+  if [[ "$TRAVIS_BRANCH" = "master" ]]; then
+    docker build -t deploy .
+    <app/app.yaml.example envsubst > app/app.yaml
+    docker run -t \
+      -v `pwd`:/go/src/github.com/${TRAVIS_REPO_SLUG} \
+      -e GOOGLE_PROJECT=${GOOGLE_PROJECT} \
+      -e GOOGLE_CREDENTIALS=./credentials.json \
+      -w /go/src/github.com/${TRAVIS_REPO_SLUG} \
+      deploy tools/deploy
+  fi
+env:
+  global:
+  - secure: cS4vipPU8r6Tj31pMLhe/ZAl6RU1gYId2skwuQqXaNVk84ghm69qYxzD2k85PF50GPIEdIJ7ggMq/aY43+/2w26pgkaF69CbIC/5x94R0ZUHxOZRBHYNYg3ZCWiz59jwkPd61YNElRz8KGfzaj6UU4ykDOwtwpXl+i3EVU7ndiV6wU+AhKi0bske/TADqy5s9lRRkY/9SThDz/gokj4o2mffQlu34IKzs3cW5xfm/MPKv+Cy7aS+DnVcw+k44bsKCwRzu8jszy6siK97mZx0lTb55Dc4aTEOuviarL7BAC4GFjXdVq8PhdomQtdm6ICh+44AzJCIRuwwO2bkrVytxE6YaUtavSDZYnv4AR3b8U6TXluBIzxxO9cQPcYB+bYG/XHSKsEUlTrQqpa5lyFOrI8yuy9Lot5I51bju48xpXj8gcPmgziNqujLHl8IjfhHWOxvYZxwlFYZF37dWZE6BzlO2ox/C7OPPXX/iF3ThGqmGMqATfU8Ju2iut2K6NiKKKjHTmNZv9gemV/tr1ew7pqww7YEhv1xI4Y6SeLw7LkYu8z2e5XjTEdhjyQPmzOasvPkXOcLQNLAYdaVHsPpqtrk6Tu78EeNZaUpaqlLhJH86rIYfiB0BDz5euVAAnIDHlraW/y/EGO7tTi8IK8ov8tDpXOuIhBsCqXocVCj9pE=
+  - secure: I/B9DOseoVqZf1ZRqtxikfOJH52IOPtGdmX+Y/kzxnBHe1El5avSuMPNVGPJv4PKaZwA0rwpcYZ8vb29mFSKAZPd9XMBJEeN/TKpXjrCpHvXHTKZJs/dG4s3zM3kxuJRmteFTX0dJpYcyKnLaWcusvx+CAURZs+kDrbMBQiaxi7r1OROdokPs1zO370nscNIDkXud9+DtF/nI5nLW/wALJ+CpF7q7KmnsHwZNEYCqEAI+nG1ZKSHGqLZgK2zYzPYo7SDKILcgACaAv/RJb0LnzHHP2Lc1Dlr0+4rxp/k57w0DZzHG0QPx/pMhYUudfFs820aORg+WDKGpylArRlMIzkC4eSSCCafmvVizV5hj2Fk5HUMO07xfjirnaDi2OAuXYrvHJAWsscJ8wyFKBdDomGf+D6vE/WE/2+KSWbhqrIS9tkkeD0L2NgEmwe/3A94BkMizf6pGGRT1suHF5ySrsMpDP7IeQK7uQl9NWGaBnbHz8pmlJozcTxzAy0H58XSZvKNfJooMxXJLSItRz4/qk3nAEtT4KpbcalafD8TvioF0Crg3Vr6YveYQBOCJmFec5kR4NDP5X+mbL7R/xTfafYhnLnbAZItFm/BaT8CC4KsPoq2m7YoEz9nDbfT066d/DxV2+TskJEVtW6EemGuZzFGHGL7OoFQdqMFNw5PiQ4=
+  - secure: l5Bk5Xxtm9+T/EUMg7ITU5YAIMvtAu4Jez+se5vlupn7Ir7i4AadgqlVexene891bPPECzF5SrRGC/e34Np3Gfi0GjFHcPq8q9ImyTS2+kGRS4/T+E+tRpTy4WU4Y/aFV1jq60qUHokWKq+iHiPNQSAbjo3OX5Zh/+9LPI1F1XgR+7rUPwLjY2l1kxfCEDCF0Kpx3GXHIAtZ61BfK5QqT2+YEwWvPru8qyrRQaF0q3zTwxJGGQTdYDKBsfnLlvPaJDP9JOviZw6LvE7MVhg5c7OdjGs+c9chr3LQlGHKAIAogOV3hNwSoGz3zqHs7GiUCCAdGch/Na7nbiJW1CERbPUVqnnP4YQn6lh5tPP2jDFyqcg+fEjK9G/NKkcRwpW8JpwZnsOb7DV3Jm2iYesSD2HTHcUToddWghxpE6YiDWbbAe1go7JAAFoI6+ZYb7iMKL8wg7q3xjmhCAoXpPc/BvgXitIWMrzYzsP88s7GYwthi17Hh+1Eiar32FI1S+O8wVsFnudU8aHd4yL3GsjnOcdOXGV/gWYtyYKQ4Kf6hynOIuKYo9+vghdG1roEMX2L//s5XaXw0sBte+/lXnbJHxdp+QDe5N6Ea1+u59pPmsDPLXbQpD28QIQnme7Ku7cBFvwgPuZByuLjDHdx5vYPd250n/FWhqNR0zUW0OtrD+o=
