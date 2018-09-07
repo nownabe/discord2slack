@@ -47,3 +47,10 @@ Required environment variables:
 * `DISCORD_TOKEN`
 * `DISCORD_GUILD_IDS`
 * `SLACK_WEBHOOK_URL`
+
+
+# Discord
+
+Scope and bot permissions.
+
+![discord](https://raw.githubusercontent.com/nownabe/discord2slack/master/doc/discord-permissions.png)
