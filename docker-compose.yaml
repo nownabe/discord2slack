@@ -8,10 +8,11 @@ services:
       dockerfile: ../Dockerfile
     command:
       - dev_appserver.py
-      - app.yaml
+      - app/app.yaml
       - --support_datastore_emulator=True
       - --storage_path=/storage
       - --host=0.0.0.0
+      - --admin_host=0.0.0.0
     ports:
       - target: 8080
         published: 8080
@@ -23,15 +24,12 @@ services:
         mode: host
     volumes:
       - type: bind
-        source: ./app
-        target: /go/${APP_PATH}/app
-      - type: bind
-        source: ./pkg
-        target: /go/${APP_PATH}/pkg
+        source: .
+        target: /go/${APP_PATH}
       - type: volume
         source: storage
         target: /storage
-    working_dir: /go/${APP_PATH}/app
+    working_dir: /go/${APP_PATH}
 
 volumes:
   storage:
