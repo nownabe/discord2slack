@@ -31,3 +31,8 @@ RUN mkdir -p /opt \
     --quiet \
   && gcloud components install app-engine-go --quiet \
   && gcloud components install cloud-datastore-emulator --quiet
+
+
+# Install dep
+
+RUN curl -L https://raw.githubusercontent.com/golang/dep/master/install.sh | sh

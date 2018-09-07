@@ -27,6 +27,13 @@ tmpdir=$(mktemp -d)
 gcloud auth activate-service-account --key-file ${GOOGLE_CREDENTIALS}
 
 
+# Install dependencies
+
+cd pkg
+dep ensure
+cd ..
+
+
 # Deploy
 
 cp app/*.yaml ${tmpdir}/
