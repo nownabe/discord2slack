@@ -15,8 +15,8 @@ type Client struct {
 	WebhookURL string
 }
 
-func New(url string) (*Client, error) {
-	return &Client{url}, nil
+func New(url string) *Client {
+	return &Client{url}
 }
 
 func (c *Client) Post(ctx context.Context, m Message) error {
