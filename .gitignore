@@ -1,2 +1,4 @@
 app.yaml
 vendor
+credentials.json
+.envrc
