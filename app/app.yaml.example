@@ -5,10 +5,15 @@ handlers:
   - url: /.*
     script: _go_app
 
-instance_class: B1
+instance_class: F1
 
-manual_scaling:
-  instances: 1
+automatic_scaling:
+  min_instances: 0
+  max_instances: 1
+  min_idle_instances: automatic
+  max_idle_instances: 1
+  min_pending_latency: 10000ms
+  max_pending_latency: automatic
 
 env_variables:
   DISCORD_TOKEN: ${DISCORD_TOKEN}
